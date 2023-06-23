@@ -1,68 +1,81 @@
+import os
 import requests
 import json
 import time
-import os
 import tkinter as tk
 from tkinter import messagebox
-import pyperclip
 from dotenv import load_dotenv
+import pyperclip
 
+# Load .env file
 load_dotenv()
+
 API_KEY = os.getenv("API_KEY")
 BASE_URL = "http://api.exchangeratesapi.io/v1/latest?access_key="
 CACHE_FILE = 'cache.json'
-
-conversion_rate = {
-    'from_currency': 'MXN',
-    'to_currency': 'USD'
-}
 
 def get_exchange_rate():
     if os.path.exists(CACHE_FILE):
         with open(CACHE_FILE, 'r') as f:
             cache = json.load(f)
         if cache['timestamp'] > time.time() - 24*60*60:
-            return cache['rates'][conversion_rate['from_currency']], cache['rates'][conversion_rate['to_currency']]
+            return cache['rates']['USD'], cache['rates']['MXN']
 
     response = requests.get(BASE_URL + API_KEY)
     if response.status_code == 200:
         data = json.loads(response.text)
         with open(CACHE_FILE, 'w') as f:
             json.dump(data, f)
-        return data['rates'][conversion_rate['from_currency']], data['rates'][conversion_rate['to_currency']]
+        return data['rates']['USD'], data['rates']['MXN']
     else:
         print(f"Error: {response.status_code}")
         return None, None
 
 def convert_currency():
-    amount = float(currency_entry.get())
-    from_rate, to_rate = get_exchange_rate()
-    converted_amount = (amount / from_rate) * to_rate
-    result_label['text'] = f'{amount} {conversion_rate["from_currency"]} = {converted_amount:.2f} {conversion_rate["to_currency"]}'
-    pyperclip.copy(f'{converted_amount:.2f}')
+    amount = float(amount_entry.get())
+    usd_rate, mxn_rate = get_exchange_rate()
 
-def toggle_currency():
-    conversion_rate['from_currency'], conversion_rate['to_currency'] = conversion_rate['to_currency'], conversion_rate['from_currency']
-    currency_label['text'] = f'Enter amount in {conversion_rate["from_currency"]}:'
-    convert_currency()
+    if currency_var.get() == 'MXN':
+        result = (amount / mxn_rate) * usd_rate
+        result_label['text'] = f'{amount} MXN = {result:.2f} USD'
+    else:
+        result = (amount / usd_rate) * mxn_rate
+        result_label['text'] = f'{amount} USD = {result:.2f} MXN'
+
+    pyperclip.copy(f'{result:.2f}')
+
+def copy_from_clipboard():
+    amount_entry.delete(0, tk.END)
+    amount_entry.insert(0, pyperclip.paste())
 
 root = tk.Tk()
 root.title('Currency Converter')
 
-currency_label = tk.Label(root, text=f'Enter amount in {conversion_rate["from_currency"]}:')
-currency_label.pack(padx=10, pady=10)
+padding = tk.Frame(root, padx=15, pady=15)
+padding.pack()
 
-currency_entry = tk.Entry(root)
-currency_entry.pack(padx=10, pady=10)
-currency_entry.insert(0, pyperclip.paste())
+currency_var = tk.StringVar(value='MXN')
 
-convert_button = tk.Button(root, text='Convert', command=convert_currency)
-convert_button.pack(padx=10, pady=10)
+amount_label = tk.Label(padding, text='Enter amount:')
+amount_label.pack()
 
-toggle_button = tk.Button(root, text='Toggle Currency', command=toggle_currency)
-toggle_button.pack(padx=10, pady=10)
+amount_entry = tk.Entry(padding)
+amount_entry.pack()
+amount_entry.insert(0, pyperclip.paste())
 
-result_label = tk.Label(root, text='')
-result_label.pack(padx=10, pady=10)
+copy_button = tk.Button(padding, text='Copy from clipboard', command=copy_from_clipboard)
+copy_button.pack(pady=(5,10))
+
+mxn_radio = tk.Radiobutton(padding, text='MXN to USD', variable=currency_var, value='MXN')
+mxn_radio.pack()
+
+usd_radio = tk.Radiobutton(padding, text='USD to MXN', variable=currency_var, value='USD')
+usd_radio.pack(pady=(0,10))
+
+convert_button = tk.Button(padding, text='Convert', command=convert_currency)
+convert_button.pack()
+
+result_label = tk.Label(padding, text='')
+result_label.pack()
 
 root.mainloop()
