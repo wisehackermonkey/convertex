@@ -1,16 +1,16 @@
-import os
 import requests
 import json
 import time
+import os
 import tkinter as tk
 from tkinter import messagebox
-from dotenv import load_dotenv
 import pyperclip
+from dotenv import load_dotenv
 
-# Load .env file
+# Load environment variables from .env file
 load_dotenv()
-
 API_KEY = os.getenv("API_KEY")
+
 BASE_URL = "http://api.exchangeratesapi.io/v1/latest?access_key="
 CACHE_FILE = 'cache.json'
 
@@ -32,10 +32,13 @@ def get_exchange_rate():
         return None, None
 
 def convert_currency():
-    amount = float(amount_entry.get())
+    # Remove all non-digit characters from the input
+    amount = float(''.join(filter(str.isdigit, amount_entry.get())))
+
     usd_rate, mxn_rate = get_exchange_rate()
 
-    if currency_var.get() == 'MXN':
+    # Check the toggle status to determine the conversion direction
+    if toggle_status.get():
         result = (amount / mxn_rate) * usd_rate
         result_label['text'] = f'{amount} MXN = {result:.2f} USD'
     else:
@@ -44,38 +47,38 @@ def convert_currency():
 
     pyperclip.copy(f'{result:.2f}')
 
-def copy_from_clipboard():
+def toggle_conversion():
+    if toggle_status.get():
+        toggle_button.config(text='Converting MXN to USD')
+    else:
+        toggle_button.config(text='Converting USD to MXN')
+
+def paste_from_clipboard():
     amount_entry.delete(0, tk.END)
     amount_entry.insert(0, pyperclip.paste())
 
 root = tk.Tk()
 root.title('Currency Converter')
 
-padding = tk.Frame(root, padx=15, pady=15)
-padding.pack()
+toggle_status = tk.BooleanVar()
+toggle_status.set(True)
 
-currency_var = tk.StringVar(value='MXN')
+toggle_button = tk.Checkbutton(root, text='Converting MXN to USD', variable=toggle_status, command=toggle_conversion)
+toggle_button.pack(pady=10)
 
-amount_label = tk.Label(padding, text='Enter amount:')
-amount_label.pack()
+amount_label = tk.Label(root, text='Enter amount:')
+amount_label.pack(pady=10)
 
-amount_entry = tk.Entry(padding)
-amount_entry.pack()
-amount_entry.insert(0, pyperclip.paste())
+amount_entry = tk.Entry(root)
+amount_entry.pack(pady=10)
 
-copy_button = tk.Button(padding, text='Copy from clipboard', command=copy_from_clipboard)
-copy_button.pack(pady=(5,10))
+paste_button = tk.Button(root, text='Paste from clipboard', command=paste_from_clipboard)
+paste_button.pack(pady=10)
 
-mxn_radio = tk.Radiobutton(padding, text='MXN to USD', variable=currency_var, value='MXN')
-mxn_radio.pack()
+convert_button = tk.Button(root, text='Convert', command=convert_currency)
+convert_button.pack(pady=10)
 
-usd_radio = tk.Radiobutton(padding, text='USD to MXN', variable=currency_var, value='USD')
-usd_radio.pack(pady=(0,10))
-
-convert_button = tk.Button(padding, text='Convert', command=convert_currency)
-convert_button.pack()
-
-result_label = tk.Label(padding, text='')
-result_label.pack()
+result_label = tk.Label(root, text='')
+result_label.pack(pady=10)
 
 root.mainloop()
