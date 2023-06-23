@@ -74,6 +74,7 @@ cd convertex
 ### 
 ```bash
 pyinstaller --onefile --windowed convertex.py
+pyinstaller --onefile --windowed --icon=icon.ico convertex.py
 
 ```
 
