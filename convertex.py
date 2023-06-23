@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import messagebox
 import pyperclip
 
-API_KEY = "fdee8cd0c45dc867fe867abe247921d4"
+API_KEY = "XXXXXXXXXXXXXXXXXX"
 BASE_URL = "http://api.exchangeratesapi.io/v1/latest?access_key="
 CACHE_FILE = 'cache.json'
 
