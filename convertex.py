@@ -32,8 +32,9 @@ def get_exchange_rate():
         return None, None
 
 def convert_currency():
-    # Remove all non-digit characters from the input
-    amount = float(''.join(filter(str.isdigit, amount_entry.get())))
+    # To remove all non-digit characters from the input, including the dot (".") to convert the input to a floating-point number, you can modify the code as follows:
+    amount = float(''.join(filter(lambda x: x.isdigit() or x == '.', amount_entry.get())))
+
 
     usd_rate, mxn_rate = get_exchange_rate()
 

@@ -1,2 +1,4 @@
 pyperclip
 python-dotenv
+virtualenv
+requests
