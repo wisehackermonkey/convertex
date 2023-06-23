@@ -10,7 +10,8 @@ npm-debug.log*
 # Dependency directory
 # https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
 node_modules
-
+build
+venv
 
 # vscode workspace files are user-specific
 *.sublime-workspace

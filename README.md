@@ -73,6 +73,8 @@ cd convertex
 # Development
 ### 
 ```bash
+pyinstaller --onefile --windowed convertex.py
+
 ```
 
 
